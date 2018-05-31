@@ -103,6 +103,8 @@ class ICWBData(object):
         test_out = os.path.join(outdir, os.path.basename(test_in))
         self.make_test(test_in, test_out)
 
+        return train_out, test_out
+
     @staticmethod
     def format_est(infile, outfile):
         with open(infile) as f:
