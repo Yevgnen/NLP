@@ -71,38 +71,38 @@ class ICWBData(object):
         return ['B'] + ['M'] * (len(word) - 2) + ['E']
 
     def tag_sentence(self, sen):
-        return list(
-            itertools.chain(*[zip(w, self.tag_word(w)) for w in sen.split()]))
+        return itertools.chain(*[zip(w, self.tag_word(w)) for w in sen.split()])
 
     def tag_line(self, line):
-        re_sentences = re.compile(r'.*?[。？！]')
-        sens = split(re_sentences, line)
+        # NOTE: treat each line a single sentence
+        return self.tag_sentence(line)
 
-        if not sens:
-            sens = line
-
-        return list(self.tag_sentence(s) for s in sens)
-
-    def tag_file(self, infile, outfile):
+    def make_train(self, infile, outfile):
         with open(infile) as f:
             with open(outfile, mode='w') as g:
                 for line in f:
-                    tagged_sens = self.tag_line(line.strip())
-                    g.writelines('\n\n'.join(
-                        '\n'.join(' '.join(l) for l in s) for s in tagged_sens))
+                    tagged_line = self.tag_line(line.strip())
+                    g.writelines('\n'.join(' '.join(l) for l in tagged_line))
+                    g.writelines('\n\n')
+
+    def make_test(self, infile, outfile):
+        with open(infile) as f:
+            with open(outfile, mode='w') as g:
+                for line in f:
+                    line = line.strip()
+                    g.writelines('\n'.join(list(line)))
                     g.writelines('\n\n')
 
     def make_dataset(self, key, outdir):
         os.makedirs(outdir, exist_ok=True)
 
-        train_input = self.train_tpl.format(key)
-        test_input = self.test_tpl.format(key)
+        train_in = self.train_tpl.format(key)
+        train_out = os.path.join(outdir, os.path.basename(train_in))
+        self.make_train(train_in, train_out)
 
-        train_output = os.path.join(outdir, os.path.basename(train_input))
-        test_output = os.path.join(outdir, os.path.basename(test_input))
-
-        self.tag_file(train_input, train_output)
-        self.tag_file(test_input, test_output)
+        test_in = self.test_tpl.format(key)
+        test_out = os.path.join(outdir, os.path.basename(test_in))
+        self.make_test(test_in, test_out)
 
 
 def parse_args():
