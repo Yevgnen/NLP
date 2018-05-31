@@ -1,0 +1,63 @@
+* Readme
+
+This example illustrates how to use [[https://taku910.github.io/crfpp/][=CRF++=]].
+
+* Dataset
+
+The dataset is from [[http://sighan.cs.uchicago.edu/bakeoff2005/][Second International Chinese Word Segmentation Bakeoff]]. Four
+corpus including Academia Sinica, City University of Hong Kong, Peking
+University and Microsoft Research are available. Reference to the origin website
+for more details.
+
+* Workflow
+
+The ~main.sh~ script controls the full workflow. Here's a brief
+description. Make sure =CRF++= has already installed in your system.
+
+1. Use =preprocess.py= script to download the ICWB (training and testing)
+   dataset automatically and format it into =CRF++= data [[https://taku910.github.io/crfpp/#format][format]].
+
+2. Use =crf_learn= command to train the model, for example
+
+   #+BEGIN_SRC sh
+   crf_learn -f 3 -c 1.5 template.txt train_data_file model_file
+   #+END_SRC
+
+   Reference to the =CRF++= or ~crf_learn --help~ for more available parameters.
+
+3. Use ~crf_test~ to make prediction for the test data. Note that the output
+   format will in =CRF++= format. So a ~postprocess.py~ script will turn the
+   format into ICWB required format for further evaluation.
+
+#+BEGIN_SRC sh
+  crf_test -m model_file test_data_file crfpp_prediction.txt
+  python3 postprocess.py -e crfpp_prediction.txt -o icwb_predction.txt
+#+END_SRC
+
+4. Use the perl script ~icwb2-data/scripts/score~ to perform scoring. The output
+   look like
+   
+   #+BEGIN_EXAMPLE
+     === SUMMARY:
+     === TOTAL INSERTIONS:	1421
+     === TOTAL DELETIONS:	1276
+     === TOTAL SUBSTITUTIONS:	2412
+     === TOTAL NCHANGE:	5109
+     === TOTAL TRUE WORD COUNT:	106873
+     === TOTAL TEST WORD COUNT:	107018
+     === TOTAL TRUE WORDS RECALL:	0.965
+     === TOTAL TEST WORDS PRECISION:	0.964
+     === F MEASURE:	0.965
+     === OOV Rate:	0.026
+     === OOV Recall Rate:	0.647
+     === IV Recall Rate:	0.974
+     ### puk_score.utf8	1421	1276	2412	5109	106873	107018	0.965	0.964	0.965	0.026	0.647	0.974
+   #+END_EXAMPLE
+
+** TL;DR
+
+#+BEGIN_SRC sh
+  sh main.sh
+#+END_SRC
+
+
