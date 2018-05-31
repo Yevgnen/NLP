@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import argparse
 import itertools
 import os
 import re
@@ -104,28 +103,27 @@ class ICWBData(object):
         test_out = os.path.join(outdir, os.path.basename(test_in))
         self.make_test(test_in, test_out)
 
+    @staticmethod
+    def format_est(infile, outfile):
+        with open(infile) as f:
+            with open(outfile, mode='w') as g:
+                sentence = []
+                word = []
+                for line in f:
+                    line = line.strip().split()
 
-def parse_args():
+                    if not line:
+                        g.writelines(' '.join(sentence))
+                        g.writelines('\n')
+                        sentence = []
+                        continue
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-d',
-        '--dataset',
-        type=str,
-        default='pku',
-        help='Dataset (default: \'pku\')')
-    parser.add_argument(
-        '-o',
-        '--output',
-        type=str,
-        default='data/',
-        help='Output directory (default: \'data/\')')
-    args = parser.parse_args()
+                    char, tag = line[0], line[-1]
+                    if tag == 'S':
+                        sentence += [char]
+                        continue
 
-    return args
-
-
-if __name__ == '__main__':
-    args = parse_args()
-
-    ICWBData(args.output).make_dataset(args.dataset, args.output)
+                    word += [char]
+                    if tag == 'E':
+                        sentence += [''.join(word)]
+                        word = []
